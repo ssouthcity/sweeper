@@ -1,0 +1,31 @@
+[
+    {
+        "type": 1,
+        "name": "plan",
+        "description": "organize an event for a group activity",
+        "options": [
+            {
+                "type": 4,
+                "name": "activity",
+                "description": "the type of activity you will you be doing",
+                "required": true,
+                "choices": [
+                    {
+                        "name": "raid",
+                        "value": 1
+                    },
+                    {
+                        "name": "trials",
+                        "value": 2
+                    }
+                ]
+            },
+            {
+                "type": 3,
+                "name": "description",
+                "description": "describe the event in further detail",
+                "required": true
+            }
+        ]
+    }
+]
