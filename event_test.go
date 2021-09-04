@@ -3,8 +3,6 @@ package sweeper
 import (
 	"fmt"
 	"testing"
-
-	"github.com/bwmarrin/discordgo"
 )
 
 func TestNewEvent(t *testing.T) {
@@ -44,16 +42,16 @@ func TestParticipants(t *testing.T) {
 		t.Errorf("expected event to be empty")
 	}
 
-	if err := evt.AddParticipant(&discordgo.User{ID: "0"}); err != nil {
+	if err := evt.AddParticipant(&User{ID: "0"}); err != nil {
 		t.Errorf("expected add participant to succeed, got error %s", err)
 	}
 
-	if err := evt.AddParticipant(&discordgo.User{ID: "0"}); err != ErrAlreadyJoined {
+	if err := evt.AddParticipant(&User{ID: "0"}); err != ErrAlreadyJoined {
 		t.Errorf("expected error to be already joined, got error %s", err)
 	}
 
 	for i := 1; i < Trials.MemberCount(); i++ {
-		if err := evt.AddParticipant(&discordgo.User{ID: fmt.Sprintf("%d", i)}); err != nil {
+		if err := evt.AddParticipant(&User{ID: Snowflake(fmt.Sprintf("%d", i))}); err != nil {
 			t.Errorf("expected add participant to succeed, got error %s", err)
 		}
 	}
@@ -62,7 +60,7 @@ func TestParticipants(t *testing.T) {
 		t.Errorf("expected event to be full")
 	}
 
-	if err := evt.AddParticipant(&discordgo.User{ID: "test"}); err != ErrNoOpenSpots {
+	if err := evt.AddParticipant(&User{ID: "test"}); err != ErrNoOpenSpots {
 		t.Errorf("expected add participant to raise ErrNoOpenSpots, got error %s", err)
 	}
 }

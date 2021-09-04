@@ -1,23 +1,25 @@
 package planning
 
 import (
-	"github.com/bwmarrin/discordgo"
 	"github.com/ssouthcity/sweeper"
 )
 
 type PlanningService interface {
 	PlanEvent(a sweeper.Activity, d string) (sweeper.Snowflake, error)
-	JoinEvent(id sweeper.Snowflake, user *discordgo.User) error
+	JoinEvent(id sweeper.Snowflake, userID sweeper.Snowflake) error
 	Event(id sweeper.Snowflake) (*sweeper.Event, error)
+	CancelEvent(id sweeper.Snowflake) error
 }
 
 type planningService struct {
 	events sweeper.EventRepository
+	users  sweeper.UserRepository
 }
 
-func NewPlanningService(er sweeper.EventRepository) PlanningService {
+func NewPlanningService(er sweeper.EventRepository, ur sweeper.UserRepository) PlanningService {
 	return &planningService{
 		events: er,
+		users:  ur,
 	}
 }
 
@@ -34,13 +36,18 @@ func (s *planningService) PlanEvent(activity sweeper.Activity, description strin
 	return evt.ID, nil
 }
 
-func (s *planningService) JoinEvent(id sweeper.Snowflake, user *discordgo.User) error {
+func (s *planningService) JoinEvent(id sweeper.Snowflake, userID sweeper.Snowflake) error {
 	evt, err := s.events.Find(id)
 	if err != nil {
 		return err
 	}
 
-	if err := evt.AddParticipant(user); err != nil {
+	usr, err := s.users.Find(userID)
+	if err != nil {
+		return err
+	}
+
+	if err := evt.AddParticipant(usr); err != nil {
 		return err
 	}
 
@@ -58,4 +65,8 @@ func (s *planningService) Event(id sweeper.Snowflake) (*sweeper.Event, error) {
 	}
 
 	return evt, nil
+}
+
+func (s *planningService) CancelEvent(id sweeper.Snowflake) error {
+	return s.events.Remove(id)
 }

@@ -7,4 +7,5 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/golang/mock v1.6.0
 	github.com/rs/zerolog v1.23.0
+	go.mongodb.org/mongo-driver v1.7.1
 )

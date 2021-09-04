@@ -50,10 +50,10 @@ func (mr *MockEventRepositoryMockRecorder) Find(id interface{}) *gomock.Call {
 }
 
 // FindAll mocks base method.
-func (m *MockEventRepository) FindAll() []*sweeper.Event {
+func (m *MockEventRepository) FindAll() map[sweeper.Snowflake]*sweeper.Event {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindAll")
-	ret0, _ := ret[0].([]*sweeper.Event)
+	ret0, _ := ret[0].(map[sweeper.Snowflake]*sweeper.Event)
 	return ret0
 }
 

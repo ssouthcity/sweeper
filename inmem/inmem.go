@@ -34,12 +34,12 @@ func (r *EventRepository) Find(id sweeper.Snowflake) (*sweeper.Event, error) {
 	return nil, errors.New("event does not exist")
 }
 
-func (r *EventRepository) FindAll() []*sweeper.Event {
+func (r *EventRepository) FindAll() map[sweeper.Snowflake]*sweeper.Event {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
-	e := make([]*sweeper.Event, 0, len(r.events))
-	for _, val := range r.events {
-		e = append(e, val)
+	e := make(map[sweeper.Snowflake]*sweeper.Event, len(r.events))
+	for key, val := range r.events {
+		e[key] = val
 	}
 	return e
 }
