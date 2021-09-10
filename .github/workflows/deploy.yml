@@ -68,4 +68,4 @@ jobs:
           known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
 
       - name: Update Containers
-        run: doctl compute ssh sweeper-0 --ssh-command "bash ./deploy.sh"
+        run: doctl compute ssh sweeper-0 < "${GITHUB_WORKSPACE}/deploy.sh"
