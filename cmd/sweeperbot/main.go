@@ -18,7 +18,7 @@ import (
 
 var (
 	token = flag.String("token", os.Getenv("DISCORD_TOKEN"), "bot token for discord authentication")
-	dburi = flag.String("mongo", os.Getenv("MONGO_URL"), "uri for the mongodb database")
+	dburi = flag.String("mongo", os.Getenv("MONGO_HOST"), "uri for the mongodb database")
 )
 
 func main() {
