@@ -1,4 +1,4 @@
-FROM golang:latest-bullseye
+FROM golang:bullseye
 
 WORKDIR /sweeper
 COPY . .
