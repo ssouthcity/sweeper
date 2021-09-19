@@ -51,7 +51,7 @@ func main() {
 
 	iHandler := interaction.NewHandler(planningSrv)
 
-	session.AddHandler(iHandler.OnInteractionCreate)
+	session.AddHandler(iHandler.HandleInteraction)
 
 	if err := session.Open(); err != nil {
 		log.Err(err).Msg("could not connect to discord")

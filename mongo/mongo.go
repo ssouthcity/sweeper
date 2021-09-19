@@ -12,6 +12,7 @@ import (
 type event struct {
 	ID           string   `bson:"_id"`
 	Activity     int      `bson:"activity"`
+	Status       int      `bson:"status"`
 	Description  string   `bson:"description"`
 	Participants []string `bson:"participants"`
 }
@@ -92,6 +93,7 @@ func encodeEvent(e *sweeper.Event) *event {
 	return &event{
 		ID:           string(e.ID),
 		Activity:     int(e.Activity),
+		Status:       int(e.Status),
 		Description:  e.Description,
 		Participants: encodeParticipants(e),
 	}
@@ -111,6 +113,7 @@ func decodeEvent(e *event, users sweeper.UserRepository) *sweeper.Event {
 	return &sweeper.Event{
 		ID:           sweeper.Snowflake(e.ID),
 		Activity:     sweeper.Activity(e.Activity),
+		Status:       sweeper.EventStatus(e.Status),
 		Description:  e.Description,
 		Participants: decodeParticipants(e, users),
 	}

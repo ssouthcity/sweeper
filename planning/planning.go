@@ -1,14 +1,17 @@
 package planning
 
 import (
+	"errors"
+
 	"github.com/ssouthcity/sweeper"
 )
 
 type PlanningService interface {
-	PlanEvent(a sweeper.Activity, d string) (sweeper.Snowflake, error)
+	PlanEvent(a sweeper.Activity, l sweeper.Snowflake, d string) (sweeper.Snowflake, error)
 	JoinEvent(id sweeper.Snowflake, userID sweeper.Snowflake) error
 	Event(id sweeper.Snowflake) (*sweeper.Event, error)
-	CancelEvent(id sweeper.Snowflake) error
+	Events() map[sweeper.Snowflake]*sweeper.Event
+	CancelEvent(id sweeper.Snowflake, userID sweeper.Snowflake) error
 }
 
 type planningService struct {
@@ -23,8 +26,13 @@ func NewPlanningService(er sweeper.EventRepository, ur sweeper.UserRepository) P
 	}
 }
 
-func (s *planningService) PlanEvent(activity sweeper.Activity, description string) (sweeper.Snowflake, error) {
-	evt, err := sweeper.NewEvent(activity, description)
+func (s *planningService) PlanEvent(activity sweeper.Activity, leaderID sweeper.Snowflake, description string) (sweeper.Snowflake, error) {
+	leader, err := s.users.Find(leaderID)
+	if err != nil {
+		return "", err
+	}
+
+	evt, err := sweeper.NewEvent(activity, leader, description)
 	if err != nil {
 		return "", err
 	}
@@ -67,6 +75,23 @@ func (s *planningService) Event(id sweeper.Snowflake) (*sweeper.Event, error) {
 	return evt, nil
 }
 
-func (s *planningService) CancelEvent(id sweeper.Snowflake) error {
-	return s.events.Remove(id)
+func (s *planningService) Events() map[sweeper.Snowflake]*sweeper.Event {
+	evts := s.events.FindAll()
+
+	return evts
+}
+
+func (s *planningService) CancelEvent(id sweeper.Snowflake, userID sweeper.Snowflake) error {
+	evt, err := s.events.Find(id)
+	if err != nil {
+		return err
+	}
+
+	if evt.Leader().ID != userID {
+		return errors.New("user is not permitted to do this action")
+	}
+
+	evt.Cancel()
+
+	return s.events.Store(evt)
 }
