@@ -24,8 +24,8 @@ func (r *userRepository) Find(id sweeper.Snowflake) (*sweeper.User, error) {
 }
 
 func (r *userRepository) Store(u *sweeper.User) error {
-	for _, id := range r.classRoleIDs {
-		if err := r.session.GuildMemberRoleRemove(r.guildID, string(u.ID), id); err != nil {
+	for _, rid := range r.classRoleIDs {
+		if err := r.session.GuildMemberRoleRemove(r.guildID, string(u.ID), rid); err != nil {
 			return err
 		}
 	}
@@ -38,5 +38,5 @@ func (r *userRepository) Store(u *sweeper.User) error {
 }
 
 func NewUserRepository(session *discordgo.Session, guildID string, classRoleIDs map[sweeper.Class]string) sweeper.UserRepository {
-	return &userRepository{session: session}
+	return &userRepository{session: session, guildID: guildID, classRoleIDs: classRoleIDs}
 }
