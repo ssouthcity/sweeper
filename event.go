@@ -52,7 +52,7 @@ func (e *Event) AddParticipant(user *User) error {
 
 	e.Participants = append(e.Participants, user)
 
-	if len(e.Participants) == cap(e.Participants) {
+	if len(e.Participants) >= e.Activity.MemberCount() {
 		e.Status = EventStatusFull
 	}
 
