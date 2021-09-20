@@ -37,6 +37,6 @@ func (r *userRepository) Store(u *sweeper.User) error {
 	return nil
 }
 
-func NewUserRepository(session *discordgo.Session) sweeper.UserRepository {
+func NewUserRepository(session *discordgo.Session, guildID string, classRoleIDs map[sweeper.Class]string) sweeper.UserRepository {
 	return &userRepository{session: session}
 }

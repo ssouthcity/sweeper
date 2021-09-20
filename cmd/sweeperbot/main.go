@@ -8,6 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/ssouthcity/sweeper"
 	"github.com/ssouthcity/sweeper/discord"
 	"github.com/ssouthcity/sweeper/flairing"
 	"github.com/ssouthcity/sweeper/interaction"
@@ -45,7 +46,7 @@ func main() {
 
 	db := mclient.Database("sweeper")
 
-	userRepo := discord.NewUserRepository(session)
+	userRepo := discord.NewUserRepository(session, "672544296913600533", map[sweeper.Class]string{sweeper.Titan: "779149217565638708", sweeper.Hunter: "779149035486838795", sweeper.Warlock: "779149290554654730"})
 	eventRepo := mgo.NewEventRepository(db.Collection("events"), userRepo)
 
 	planningSrv := planning.NewPlanningService(eventRepo, userRepo)
