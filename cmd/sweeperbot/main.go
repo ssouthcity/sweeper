@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/ssouthcity/sweeper/discord"
+	"github.com/ssouthcity/sweeper/flairing"
 	"github.com/ssouthcity/sweeper/interaction"
 	mgo "github.com/ssouthcity/sweeper/mongo"
 	"github.com/ssouthcity/sweeper/planning"
@@ -48,8 +49,9 @@ func main() {
 	eventRepo := mgo.NewEventRepository(db.Collection("events"), userRepo)
 
 	planningSrv := planning.NewPlanningService(eventRepo, userRepo)
+	flairingSrv := flairing.NewFlairingService(userRepo)
 
-	iHandler := interaction.NewHandler(planningSrv)
+	iHandler := interaction.NewHandler(planningSrv, flairingSrv)
 
 	session.AddHandler(iHandler.HandleInteraction)
 

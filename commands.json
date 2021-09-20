@@ -27,5 +27,10 @@
                 "required": true
             }
         ]
+    },
+    {
+        "type": "1",
+        "name": "class",
+        "description": "change your class role"
     }
 ]

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/ssouthcity/sweeper/flairing"
 	"github.com/ssouthcity/sweeper/planning"
 )
 
@@ -81,7 +82,7 @@ func (r *InteractionRouter) handleMessageComponent(s *discordgo.Session, i *disc
 	}
 }
 
-func NewHandler(p planning.PlanningService) *InteractionRouter {
+func NewHandler(p planning.PlanningService, f flairing.FlairingService) *InteractionRouter {
 	r := &InteractionRouter{
 		applicationCommands: make(map[string]InteractionHandler),
 		messageComponents:   make(map[string]InteractionHandler),
@@ -90,6 +91,9 @@ func NewHandler(p planning.PlanningService) *InteractionRouter {
 
 	ph := &PlanningHandler{p}
 	ph.interactions(r)
+
+	fh := &FlairingHandler{f}
+	fh.interactions(r)
 
 	return r
 }

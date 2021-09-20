@@ -6,7 +6,9 @@ import (
 )
 
 type userRepository struct {
-	session *discordgo.Session
+	session      *discordgo.Session
+	guildID      string
+	classRoleIDs map[sweeper.Class]string
 }
 
 func (r *userRepository) Find(id sweeper.Snowflake) (*sweeper.User, error) {
@@ -19,6 +21,20 @@ func (r *userRepository) Find(id sweeper.Snowflake) (*sweeper.User, error) {
 		ID:       sweeper.Snowflake(u.ID),
 		Username: u.Username,
 	}, nil
+}
+
+func (r *userRepository) Store(u *sweeper.User) error {
+	for _, id := range r.classRoleIDs {
+		if err := r.session.GuildMemberRoleRemove(r.guildID, string(u.ID), id); err != nil {
+			return err
+		}
+	}
+
+	if err := r.session.GuildMemberRoleAdd(r.guildID, string(u.ID), r.classRoleIDs[u.Class]); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewUserRepository(session *discordgo.Session) sweeper.UserRepository {
