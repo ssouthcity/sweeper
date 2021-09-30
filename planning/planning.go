@@ -11,6 +11,7 @@ type PlanningService interface {
 	JoinEvent(id sweeper.Snowflake, userID sweeper.Snowflake) error
 	Event(id sweeper.Snowflake) (*sweeper.Event, error)
 	Events() map[sweeper.Snowflake]*sweeper.Event
+	LeaveEvent(id sweeper.Snowflake, userID sweeper.Snowflake) error
 	CancelEvent(id sweeper.Snowflake, userID sweeper.Snowflake) error
 }
 
@@ -56,6 +57,28 @@ func (s *planningService) JoinEvent(id sweeper.Snowflake, userID sweeper.Snowfla
 	}
 
 	if err := evt.AddParticipant(usr); err != nil {
+		return err
+	}
+
+	if err := s.events.Store(evt); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *planningService) LeaveEvent(id sweeper.Snowflake, userID sweeper.Snowflake) error {
+	evt, err := s.events.Find(id)
+	if err != nil {
+		return err
+	}
+
+	usr, err := s.users.Find(userID)
+	if err != nil {
+		return err
+	}
+
+	if err := evt.RemoveParticipant(usr); err != nil {
 		return err
 	}
 

@@ -16,6 +16,7 @@ type PlanningHandler struct {
 func (h PlanningHandler) interactions(r *InteractionRouter) {
 	r.ApplicationCommand("plan", h.PlanEvent)
 	r.MessageComponent("plan-join *", h.JoinEvent)
+	r.MessageComponent("plan-leave *", h.LeaveEvent)
 	r.MessageComponent("plan-cancel *", h.CancelEvent)
 }
 
@@ -49,6 +50,11 @@ func (h PlanningHandler) PlanEvent(s *discordgo.Session, i *discordgo.Interactio
 							Style:    discordgo.PrimaryButton,
 						},
 						discordgo.Button{
+							CustomID: fmt.Sprintf("plan-leave %s", id),
+							Label:    "Leave",
+							Style:    discordgo.SecondaryButton,
+						},
+						discordgo.Button{
 							CustomID: fmt.Sprintf("plan-cancel %s", id),
 							Label:    "Cancel",
 							Style:    discordgo.DangerButton,
@@ -71,6 +77,29 @@ func (h PlanningHandler) JoinEvent(s *discordgo.Session, i *discordgo.Interactio
 	}
 
 	evt, err := h.planning.Event(evtID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseUpdateMessage,
+		Data: &discordgo.InteractionResponseData{
+			Embeds: []*discordgo.MessageEmbed{h.eventEmbed(evt)},
+		},
+	}, nil
+}
+
+func (h PlanningHandler) LeaveEvent(s *discordgo.Session, i *discordgo.InteractionCreate) (*discordgo.InteractionResponse, error) {
+	data := i.MessageComponentData()
+
+	eventID := sweeper.Snowflake(ComponentParam(data.CustomID, 0))
+	userID := sweeper.Snowflake(i.Member.User.ID)
+
+	if err := h.planning.LeaveEvent(eventID, userID); err != nil {
+		return nil, err
+	}
+
+	evt, err := h.planning.Event(eventID)
 	if err != nil {
 		return nil, err
 	}
