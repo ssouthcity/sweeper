@@ -12,7 +12,7 @@ import (
 
 var ErrAlreadyRegistered = errors.New("interaction is already registered")
 
-type InteractionHandler func(s *discordgo.Session, i *discordgo.InteractionCreate) *discordgo.InteractionResponse
+type InteractionHandler func(s *discordgo.Session, i *discordgo.InteractionCreate) (*discordgo.InteractionResponse, error)
 
 type InteractionRouter struct {
 	applicationCommands map[string]InteractionHandler
@@ -52,7 +52,18 @@ func (r *InteractionRouter) handleApplicationCommand(s *discordgo.Session, i *di
 	data := i.ApplicationCommandData()
 
 	if h, ok := r.applicationCommands[data.Name]; ok {
-		return h(s, i)
+		res, err := h(s, i)
+		if err != nil {
+			return &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: err.Error(),
+					Flags:   1 << 6,
+				},
+			}
+		}
+
+		return res
 	}
 
 	return &discordgo.InteractionResponse{
@@ -69,7 +80,18 @@ func (r *InteractionRouter) handleMessageComponent(s *discordgo.Session, i *disc
 
 	for key, val := range r.messageComponents {
 		if matched, _ := regexp.MatchString(key, data.CustomID); matched {
-			return val(s, i)
+			res, err := val(s, i)
+			if err != nil {
+				return &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: err.Error(),
+						Flags:   1 << 6,
+					},
+				}
+			}
+
+			return res
 		}
 	}
 

@@ -1,6 +1,7 @@
 package interaction
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -18,7 +19,7 @@ func (h *FlairingHandler) interactions(r *InteractionRouter) {
 	r.MessageComponent("class-pick *", h.classSelect)
 }
 
-func (h *FlairingHandler) classMenu(s *discordgo.Session, i *discordgo.InteractionCreate) *discordgo.InteractionResponse {
+func (h *FlairingHandler) classMenu(s *discordgo.Session, i *discordgo.InteractionCreate) (*discordgo.InteractionResponse, error) {
 	return &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -61,44 +62,26 @@ func (h *FlairingHandler) classMenu(s *discordgo.Session, i *discordgo.Interacti
 				},
 			},
 		},
-	}
+	}, nil
 }
 
-func (h *FlairingHandler) classSelect(s *discordgo.Session, i *discordgo.InteractionCreate) *discordgo.InteractionResponse {
+func (h *FlairingHandler) classSelect(s *discordgo.Session, i *discordgo.InteractionCreate) (*discordgo.InteractionResponse, error) {
 	data := i.MessageComponentData()
 
 	classID, err := strconv.Atoi(data.Values[0])
 	if err != nil {
-		return &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "invalid class option",
-				Flags:   1 << 6,
-			},
-		}
+		return nil, errors.New("invalid class pick")
 	}
 
 	userID := sweeper.Snowflake(ComponentParam(data.CustomID, 0))
 	class := sweeper.Class(classID)
 
 	if i.Member.User.ID != string(userID) {
-		return &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "you are not the caller of this command",
-				Flags:   1 << 6,
-			},
-		}
+		return nil, errors.New("call the command yourself to pick a class")
 	}
 
 	if err := h.flairing.ChangeClass(userID, class); err != nil {
-		return &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "unable to update your class",
-				Flags:   1 << 6,
-			},
-		}
+		return nil, err
 	}
 
 	return &discordgo.InteractionResponse{
@@ -107,5 +90,5 @@ func (h *FlairingHandler) classSelect(s *discordgo.Session, i *discordgo.Interac
 			Content:    fmt.Sprintf("you are now a %s", class.String()),
 			Components: []discordgo.MessageComponent{},
 		},
-	}
+	}, nil
 }

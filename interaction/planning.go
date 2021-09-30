@@ -19,7 +19,7 @@ func (h PlanningHandler) interactions(r *InteractionRouter) {
 	r.MessageComponent("plan-cancel *", h.CancelEvent)
 }
 
-func (h PlanningHandler) PlanEvent(s *discordgo.Session, i *discordgo.InteractionCreate) *discordgo.InteractionResponse {
+func (h PlanningHandler) PlanEvent(s *discordgo.Session, i *discordgo.InteractionCreate) (*discordgo.InteractionResponse, error) {
 	data := i.ApplicationCommandData()
 
 	act := sweeper.Activity(CommandOption(data.Options, "activity").IntValue())
@@ -28,24 +28,12 @@ func (h PlanningHandler) PlanEvent(s *discordgo.Session, i *discordgo.Interactio
 
 	id, err := h.planning.PlanEvent(act, usrID, desc)
 	if err != nil {
-		return &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "you can not plan an event at the moment",
-				Flags:   1 << 6,
-			},
-		}
+		return nil, err
 	}
 
 	evt, err := h.planning.Event(id)
 	if err != nil {
-		return &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "the event you planned no longer exists",
-				Flags:   1 << 6,
-			},
-		}
+		return nil, err
 	}
 
 	return &discordgo.InteractionResponse{
@@ -69,34 +57,22 @@ func (h PlanningHandler) PlanEvent(s *discordgo.Session, i *discordgo.Interactio
 				},
 			},
 		},
-	}
+	}, nil
 }
 
-func (h PlanningHandler) JoinEvent(s *discordgo.Session, i *discordgo.InteractionCreate) *discordgo.InteractionResponse {
+func (h PlanningHandler) JoinEvent(s *discordgo.Session, i *discordgo.InteractionCreate) (*discordgo.InteractionResponse, error) {
 	data := i.MessageComponentData()
 
 	evtID := sweeper.Snowflake(ComponentParam(data.CustomID, 0))
 	usrID := sweeper.Snowflake(i.Member.User.ID)
 
 	if err := h.planning.JoinEvent(evtID, usrID); err != nil {
-		return &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "you can not join this event",
-				Flags:   1 << 6,
-			},
-		}
+		return nil, err
 	}
 
 	evt, err := h.planning.Event(evtID)
 	if err != nil {
-		return &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "the event you are trying to join no longer exists",
-				Flags:   1 << 6,
-			},
-		}
+		return nil, err
 	}
 
 	return &discordgo.InteractionResponse{
@@ -104,34 +80,22 @@ func (h PlanningHandler) JoinEvent(s *discordgo.Session, i *discordgo.Interactio
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{h.eventEmbed(evt)},
 		},
-	}
+	}, nil
 }
 
-func (h PlanningHandler) CancelEvent(s *discordgo.Session, i *discordgo.InteractionCreate) *discordgo.InteractionResponse {
+func (h PlanningHandler) CancelEvent(s *discordgo.Session, i *discordgo.InteractionCreate) (*discordgo.InteractionResponse, error) {
 	data := i.MessageComponentData()
 
 	eventID := sweeper.Snowflake(ComponentParam(data.CustomID, 0))
 	userID := sweeper.Snowflake(i.Member.User.ID)
 
 	if err := h.planning.CancelEvent(eventID, userID); err != nil {
-		return &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "you are not the fireteam leader of this event",
-				Flags:   1 << 6,
-			},
-		}
+		return nil, err
 	}
 
 	evt, err := h.planning.Event(eventID)
 	if err != nil {
-		return &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "the event you are trying to cancel no longer exists",
-				Flags:   1 << 6,
-			},
-		}
+		return nil, err
 	}
 
 	return &discordgo.InteractionResponse{
@@ -140,7 +104,7 @@ func (h PlanningHandler) CancelEvent(s *discordgo.Session, i *discordgo.Interact
 			Embeds:     []*discordgo.MessageEmbed{h.eventEmbed(evt)},
 			Components: []discordgo.MessageComponent{},
 		},
-	}
+	}, nil
 }
 
 func (h PlanningHandler) eventEmbed(event *sweeper.Event) *discordgo.MessageEmbed {
@@ -151,6 +115,8 @@ func (h PlanningHandler) eventEmbed(event *sweeper.Event) *discordgo.MessageEmbe
 
 	if len(participants) == 0 {
 		participants = append(participants, "no participants yet")
+	} else {
+		participants[0] = "**" + participants[0] + "**"
 	}
 
 	var color int
